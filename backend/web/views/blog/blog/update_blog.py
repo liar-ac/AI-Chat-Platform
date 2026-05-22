@@ -1,3 +1,5 @@
+import logging
+
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -5,7 +7,9 @@ from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 
 from web.models.blog import Blog, Tag
-from web.views.utils.photo import remove_old_photo   # 🔥 引入
+from web.views.utils.photo import remove_old_photo
+
+logger = logging.getLogger(__name__)
 
 
 class UpdateBlogView(APIView):
@@ -25,32 +29,27 @@ class UpdateBlogView(APIView):
             if not content:
                 return Response({'result': '内容不能为空'})
             if cover_photo:
-                # 删除旧封面
                 if blog.cover_photo:
                     remove_old_photo(blog.cover_photo)
-
                 blog.cover_photo = cover_photo
-            # ===== 更新基本信息 =====
             blog.title = title
             blog.content = content
             blog.update_time = timezone.now()
             blog.save()
-            # ===== 更新标签 =====
             blog.tags.clear()
-
             for name in tag_names:
                 name = name.strip().lower()
                 if name:
                     tag, _ = Tag.objects.get_or_create(name=name)
                     blog.tags.add(tag)
+            try:
+                cover_url = blog.cover_photo.url if blog.cover_photo else ''
+            except Exception:
+                cover_url = ''
             return Response({
                 'result': 'success',
-                'cover_photo': blog.cover_photo.url if blog.cover_photo else '',
+                'cover_photo': cover_url,
             })
-
-
-        except Exception as e:
-            return Response({
-                'result': '系统异常，请稍后重试',
-                'error': str(e)
-            })
+        except Exception:
+            logger.exception('更新博客失败')
+            return Response({'result': '系统异常，请稍后重试'})
