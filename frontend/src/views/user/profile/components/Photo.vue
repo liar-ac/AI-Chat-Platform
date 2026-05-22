@@ -41,7 +41,7 @@ let croppie=null
 
 // 异步打开图片裁剪模态框，初始化图片裁剪器并绑定图片
 async function openModal(photo){
-  modalRef.value.show()
+  modalRef.value.showModal()
   await nextTick()
   if (!croppie){
     croppie = new Croppie(croppieRef.value,{

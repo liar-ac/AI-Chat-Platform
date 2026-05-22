@@ -74,6 +74,11 @@ See `.env.example` files in `backend/` and `frontend/` for all required variable
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Contact
+
+- QQ: 3291890183
+- Email: yuhaohu05@163.com
+
 ## License
 
 [MIT License](LICENSE)

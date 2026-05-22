@@ -313,6 +313,11 @@ A: 确认后端已启动且数据库已执行`python manage.py migrate`。打开
 
 欢迎提交Issue和Pull Request！详见[CONTRIBUTING.md](CONTRIBUTING.md)。
 
+## 联系方式
+
+- QQ：3291890183
+- 邮箱：yuhaohu05@163.com
+
 ## 开源协议
 
 本项目基于 [MIT License](LICENSE) 开源。

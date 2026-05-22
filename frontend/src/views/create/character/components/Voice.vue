@@ -2,7 +2,7 @@
 import {ref, watch} from "vue";
 import VoiceRecorder from "@/views/create/character/components/voicerecorder/VoiceRecorder.vue";
 
-const props=defineProps(['voices','curVoiceId',''])
+const props=defineProps(['voices','curVoiceId'])
 const emit = defineEmits(["refresh"])
 const myVoice =ref(props.curVoiceId)
 watch(()=>props.curVoiceId,newVal=>{

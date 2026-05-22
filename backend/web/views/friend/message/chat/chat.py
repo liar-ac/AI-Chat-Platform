@@ -59,7 +59,7 @@ class MessageChatView(APIView):
     renderer_classes = (SSERenderer,)
     def post(self, request):
         friend_id = request.data.get('friend_id')
-        message = request.data.get('message').strip()
+        message = (request.data.get('message') or '').strip()
         if not message:
             return Response({'result': '消息不能为空'})
         friends = Friend.objects.filter(id=friend_id,me__user=request.user)

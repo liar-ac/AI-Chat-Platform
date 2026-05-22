@@ -48,9 +48,8 @@ class CloneVoiceView(APIView):
                     "name":voice_obj.name
                 }
             })
-        except Exception as e:
+        except Exception:
             traceback.print_exc()
             return Response({
                 'result': '系统异常，请稍后重试',
-                'detail': str(e)
             })
