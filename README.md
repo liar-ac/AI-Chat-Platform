@@ -49,6 +49,18 @@
 - **个人资料** — 头像裁剪(Croppie.js)、用户名修改
 - **用户空间** — 个人主页展示创作的角色和博客
 
+## 项目截图
+
+> 以下为截图占位，请后续替换为真实运行截图。
+
+| 首页 | AI聊天 |
+|------|--------|
+| ![Home](docs/images/home.png) | ![Chat](docs/images/chat.png) |
+
+| 博客广场 | 角色创建 |
+|----------|----------|
+| ![Blog](docs/images/blog.png) | ![Create Character](docs/images/create-character.png) |
+
 ## 技术栈
 
 | 层级 | 技术 |

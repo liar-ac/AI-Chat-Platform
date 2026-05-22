@@ -18,6 +18,18 @@ A full-stack web application supporting AI character creation, real-time chat, v
 - **Blog System** — Markdown editor (Vditor), image upload, tag management, infinite scroll
 - **User System** — JWT authentication, profile management, personal space
 
+## Screenshots
+
+> The following images are placeholders. Replace them with real screenshots.
+
+| Home | AI Chat |
+|------|---------|
+| ![Home](docs/images/home.png) | ![Chat](docs/images/chat.png) |
+
+| Blog Square | Character Creation |
+|-------------|--------------------|
+| ![Blog](docs/images/blog.png) | ![Create Character](docs/images/create-character.png) |
+
 ## Tech Stack
 
 | Layer | Technology |
