@@ -18,7 +18,9 @@ let failedOnce = false
 let requestId = 0  // 用于请求去重，只接受最新一次请求的结果
 
 async function loadMore(isInitial = false) {
-  if (loadingMore.value || !hasMore.value) return
+  // 初始加载不被旧的loadingMore阻塞；加载更多才需要检查
+  if (!isInitial && loadingMore.value) return
+  if (!hasMore.value) return
   if (isInitial) {
     initialLoading.value = true
   } else {
@@ -88,6 +90,7 @@ watch(() => route.query.q, () => {
   hasMore.value = true
   failedOnce = false
   ++requestId  // 使旧请求的回调失效
+  loadingMore.value = false  // 清除旧的加载更多状态，防止阻塞新初始加载
   initialLoading.value = true
   loadMore(true)
 })
