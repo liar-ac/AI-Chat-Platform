@@ -51,15 +51,13 @@
 
 ## 项目截图
 
-> 以下为截图占位，请后续替换为真实运行截图。
-
 | 首页 | AI聊天 |
-|------|--------|
+|---|---|
 | ![Home](docs/images/home.png) | ![Chat](docs/images/chat.png) |
 
 | 博客广场 | 角色创建 |
-|----------|----------|
-| ![Blog](docs/images/blog.png) | ![Create Character](docs/images/create-character.png) |
+|---|---|
+| ![Blog](docs/images/blog.png) | ![CreateCharacter](docs/images/create-character.png) |
 
 ## 技术栈
 

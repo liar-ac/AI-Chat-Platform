@@ -20,15 +20,13 @@ A full-stack web application supporting AI character creation, real-time chat, v
 
 ## Screenshots
 
-> The following images are placeholders. Replace them with real screenshots.
-
-| Home | AI Chat |
-|------|---------|
+| Home | AIChat |
+|---|---|
 | ![Home](docs/images/home.png) | ![Chat](docs/images/chat.png) |
 
-| Blog Square | Character Creation |
-|-------------|--------------------|
-| ![Blog](docs/images/blog.png) | ![Create Character](docs/images/create-character.png) |
+| BlogSquare | CharacterCreation |
+|---|---|
+| ![Blog](docs/images/blog.png) | ![CreateCharacter](docs/images/create-character.png) |
 
 ## Tech Stack
 
