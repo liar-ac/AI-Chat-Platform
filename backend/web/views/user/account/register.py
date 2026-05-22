@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from rest_framework.response import Response
@@ -6,30 +8,31 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from web.models.user import UserProfile
 
+logger = logging.getLogger(__name__)
+
 
 class RegisterView(APIView):
     def post(self, request):
         try:
-            username = request.data['username'].strip()
-            password = request.data['password'].strip()
+            username = (request.data.get('username') or '').strip()
+            password = (request.data.get('password') or '').strip()
             if not username or not password:
-                return Response({
-                    'result':'用户名或密码不能为空'
-                })
+                return Response({'result': '用户名或密码不能为空'})
             if User.objects.filter(username=username).exists():
-                return Response({
-                    'result':'用户名已存在'
-                })
+                return Response({'result': '用户名已存在'})
             user = User.objects.create_user(username=username, password=password)
             user_profile = UserProfile.objects.create(user=user)
-
-            refresh = RefreshToken.for_user(user)  # 生成jwt
+            refresh = RefreshToken.for_user(user)
+            try:
+                photo_url = user_profile.photo.url if user_profile.photo else None
+            except Exception:
+                photo_url = None
             response = Response({
                 'result': 'success',
                 'access': str(refresh.access_token),
                 'user_id': user.id,
                 'username': user.username,
-                'photo': user_profile.photo.url,  # 必须加url
+                'photo': photo_url,
                 'profile': user_profile.profile,
             })
             response.set_cookie(
@@ -42,6 +45,5 @@ class RegisterView(APIView):
             )
             return response
         except Exception:
-            return Response({
-                'result':'系统异常，请稍后重试'
-            })
+            logger.exception('注册失败')
+            return Response({'result': '系统异常，请稍后重试'})
