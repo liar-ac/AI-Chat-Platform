@@ -6,7 +6,7 @@ import FriendIcon from "@/components/navbar/icons/FriendIcon.vue";
 import CreateIcon from "@/components/navbar/icons/CreateIcon.vue";
 import { useUserStore } from "@/stores/user";
 import UserMenu from "@/components/navbar/UserMenu.vue";
-import {ref, watch} from "vue";
+import {ref, computed, watch} from "vue";
 import {useRoute, useRouter} from "vue-router";
 import SearchIcon from "@/components/navbar/icons/SearchIcon.vue";
 import BlogListIcon from "@/views/blog/icon/BlogListIcon.vue";
@@ -21,13 +21,27 @@ watch(() => route.query.q, newQ => {
   searchQuery.value = newQ || ''
 })
 
+// 根据当前路由判断是否在博客相关页面
+const isBlogPage = computed(() => {
+  const path = route.path
+  return path.startsWith('/blog')
+})
+
+// 动态placeholder
+const searchPlaceholder = computed(() => {
+  return isBlogPage.value
+    ? '搜索文章标题、作者或内容...'
+    : '搜索你感兴趣的角色...'
+})
+
+// 根据当前页面决定搜索跳转目标
 function handleSearch(){
-  router.push({
-    name:'homepage-index',
-    query:{
-      q:searchQuery.value.trim(),
-    }
-  })
+  const q = searchQuery.value.trim()
+  if (isBlogPage.value) {
+    router.push({ name: 'blog-index', query: { q } })
+  } else {
+    router.push({ name: 'homepage-index', query: { q } })
+  }
 }
 
 const navItems = [
@@ -65,7 +79,7 @@ const blogItems = [
             <input
               v-model="searchQuery"
               class="search-input"
-              placeholder="搜索你感兴趣的角色..."
+              :placeholder="searchPlaceholder"
             />
             <button type="submit" class="search-btn">搜索</button>
           </form>
@@ -90,10 +104,10 @@ const blogItems = [
     <div class="drawer-side is-drawer-close:overflow-visible">
       <label for="my-drawer-4" aria-label="close sidebar" class="drawer-overlay"></label>
       <aside class="sidebar-glass flex min-h-full flex-col items-start is-drawer-close:w-16 is-drawer-open:w-56">
-        <!-- Logo area -->
-        <div class="sidebar-logo is-drawer-close:hidden">
+        <!-- Logo: 只在展开时显示，用overflow-hidden防止截断 -->
+        <div class="sidebar-logo">
           <span class="brand-icon-lg">✦</span>
-          <span>AIFriends</span>
+          <span class="sidebar-logo-text">AIFriends</span>
         </div>
 
         <ul class="menu w-full grow px-2 gap-0.5">
@@ -105,12 +119,12 @@ const blogItems = [
               :data-tip="item.tip"
             >
               <component :is="item.icon" />
-              <span class="is-drawer-close:hidden sidebar-label">{{ item.label }}</span>
+              <span class="sidebar-label">{{ item.label }}</span>
             </RouterLink>
           </li>
 
           <!-- Divider -->
-          <li class="is-drawer-close:hidden my-2">
+          <li class="my-2">
             <div class="sidebar-divider">
               <span>博客</span>
             </div>
@@ -124,13 +138,13 @@ const blogItems = [
               :data-tip="item.tip"
             >
               <component :is="item.icon" />
-              <span class="is-drawer-close:hidden sidebar-label">{{ item.label }}</span>
+              <span class="sidebar-label">{{ item.label }}</span>
             </RouterLink>
           </li>
         </ul>
 
         <!-- Footer -->
-        <div class="sidebar-footer is-drawer-close:hidden">
+        <div class="sidebar-footer">
           <p>AI陪伴 · 创意表达</p>
         </div>
       </aside>
@@ -274,6 +288,7 @@ const blogItems = [
   padding-top: 0.5rem;
 }
 
+/* Logo区域: 窄时隐藏文字，只显示图标；宽时完整显示 */
 .sidebar-logo {
   display: flex;
   align-items: center;
@@ -284,12 +299,33 @@ const blogItems = [
   font-size: 1.1rem;
   color: var(--c-ink);
   width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .brand-icon-lg {
   font-size: 1.5rem;
   color: var(--c-accent);
   filter: drop-shadow(0 0 8px rgba(108, 92, 231, 0.3));
+  flex-shrink: 0;
+}
+
+/* 窄侧边栏时隐藏Logo文字，避免截断 */
+.sidebar-logo-text {
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .drawer:not(:has(.drawer-toggle:checked)) .sidebar-logo-text {
+    display: none;
+  }
+  .drawer:not(:has(.drawer-toggle:checked)) .sidebar-divider span,
+  .drawer:not(:has(.drawer-toggle:checked)) .sidebar-footer p {
+    display: none;
+  }
+  .drawer:not(:has(.drawer-toggle:checked)) .sidebar-label {
+    display: none;
+  }
 }
 
 .sidebar-link {
