@@ -14,7 +14,7 @@ class RemoveFriendsView(APIView):
             return Response({
                 'result': 'success',
             })
-        except:
+        except Exception:
             return Response({
                 'result': '系统异常，请稍后重试'
             })

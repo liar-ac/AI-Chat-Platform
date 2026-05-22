@@ -27,8 +27,7 @@ class GetHistoryView(APIView):
                 'result': 'success',
                 'messages': messages,
             })
-        except Exception as e:
-            print(e)
+        except Exception:
             return Response({
                 'result': '系统异常，请稍后重试',
             })

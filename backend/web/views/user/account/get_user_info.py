@@ -1,9 +1,6 @@
-from os import access
-
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.tokens import RefreshToken
 
 from web.models.user import UserProfile
 
@@ -21,7 +18,7 @@ class GetUserInfoView(APIView):
                 'photo': user_profile.photo.url,
                 'profile': user_profile.profile,
             })
-        except:
+        except Exception:
             return Response({
                 'result': '系统异常，请稍后重试'
             })

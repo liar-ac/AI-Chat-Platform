@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref, nextTick } from "vue"
 import { useRoute } from "vue-router"
-import api from "@/js/http/api.js"
+import api, { resolveMediaUrl } from "@/js/http/api.js"
 
 import Vditor from "vditor"
 import "vditor/dist/index.css"
@@ -9,6 +9,7 @@ import "vditor/dist/index.css"
 const route = useRoute()
 const blog = ref(null)
 const loading = ref(true)
+const errorMessage = ref("")
 
 async function renderMarkdown(markdown) {
   await nextTick()
@@ -30,12 +31,20 @@ async function renderMarkdown(markdown) {
 }
 
 async function load() {
-  const res = await api.get(`api/blog/detail/${route.params.blog_id}/`)
-  blog.value = res.data.blog
-  loading.value = false
-
-  if (blog.value?.content) {
-    await renderMarkdown(blog.value.content)
+  try {
+    const res = await api.get(`api/blog/detail/${route.params.blog_id}/`)
+    if (res.data.result === "success") {
+      blog.value = res.data.blog
+      if (blog.value?.content) {
+        await renderMarkdown(blog.value.content)
+      }
+    } else {
+      errorMessage.value = res.data.result || "博客加载失败"
+    }
+  } catch (err) {
+    errorMessage.value = "博客加载失败"
+  } finally {
+    loading.value = false
   }
 }
 
@@ -49,13 +58,17 @@ onMounted(load)
       <span class="loading loading-spinner loading-lg text-primary/30"></span>
     </div>
 
+    <div v-else-if="errorMessage" class="glass-card p-8 text-center text-sm text-red-500">
+      {{ errorMessage }}
+    </div>
+
     <article v-else-if="blog" class="glass-card shadow-2xl rounded-3xl overflow-hidden border border-white/20">
 
       <!-- 封面背景 -->
       <div v-if="blog.cover_photo" class="relative w-full h-[200px] bg-slate-900 overflow-hidden">
-        <img :src="blog.cover_photo"
+        <img :src="resolveMediaUrl(blog.cover_photo)"
              class="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110" />
-        <img :src="blog.cover_photo"
+        <img :src="resolveMediaUrl(blog.cover_photo)"
              class="relative z-10 w-full h-full object-contain mx-auto" />
       </div>
 
@@ -68,7 +81,7 @@ onMounted(load)
 
         <!-- 作者 + 标签 -->
         <div class="flex items-center gap-3 mb-8 pb-4 border-b border-slate-100">
-          <img :src="blog.author.photo" class="w-8 h-8 rounded-full border border-primary/20" />
+          <img :src="resolveMediaUrl(blog.author.photo)" class="w-8 h-8 rounded-full border border-primary/20" />
           <span class="text-sm font-medium text-slate-500">{{ blog.author.username }}</span>
 
           <div class="flex gap-1 ml-auto flex-wrap">

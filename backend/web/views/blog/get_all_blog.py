@@ -30,7 +30,7 @@ class GetAllBlogsView(APIView):
                 'result':'success',
                 'blogs': blogs
             })
-        except:
+        except Exception:
             return Response({
                 'result': '系统异常，请稍后重试',
             })

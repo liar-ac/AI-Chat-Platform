@@ -19,6 +19,7 @@
             username.value=data.username
             photo.value=data.photo
             profile.value=data.profile
+            hasPulledUserInfo.value=true
         }
         function logout(){
             id.value=0
@@ -26,6 +27,7 @@
             photo.value=''
             profile.value=''
             accessToken.value=''
+            hasPulledUserInfo.value=false
         }
         function setHasPulledUserInfo(newStatus) {
             hasPulledUserInfo.value = newStatus

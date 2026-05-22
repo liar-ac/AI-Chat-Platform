@@ -97,12 +97,18 @@ const router = createRouter({
     {
       path: '/blog/create',
       name: 'blog-create-index',
-      component: () => import('@/views/blog/BlogCreate.vue')
+      component: () => import('@/views/blog/BlogCreate.vue'),
+      meta: {
+        needLogin: true,
+      },
     },
     {
       path: '/blog/manage',
       name: 'blog-manage-index',
-      component: () => import('@/views/blog/BlogManage.vue')
+      component: () => import('@/views/blog/BlogManage.vue'),
+      meta: {
+        needLogin: true,
+      },
     },
     {
       path: '/blog/:blog_id',

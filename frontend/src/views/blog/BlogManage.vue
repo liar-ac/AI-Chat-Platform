@@ -1,6 +1,7 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from "vue"
-import api from "@/js/http/api.js"
+import { ref, onMounted, onBeforeUnmount, nextTick, useTemplateRef } from "vue"
+import api, { BASE_URL, resolveMediaUrl } from "@/js/http/api.js"
+import { useUserStore } from "@/stores/user.js"
 import Vditor from "vditor"
 import "vditor/dist/index.css"
 
@@ -14,38 +15,58 @@ const editContent = ref("")
 const editTags = ref("")
 const editCover = ref(null)
 const editCoverUrl = ref("")
+const loading = ref(false)
+const hasMore = ref(true)
+const sentinelRef = useTemplateRef("sentinel-ref")
 
 let vditor = null   // 只维护一个实例
+let coverObjectUrl = null
+let observer = null
+
+function revokeCoverObjectUrl() {
+  if (!coverObjectUrl) return
+  URL.revokeObjectURL(coverObjectUrl)
+  coverObjectUrl = null
+}
 
 function handleSelectFile(e) {
   const file = e.target.files[0]
   if (!file) return
 
   editCover.value = file
-
-  // 本地预览（关键）
-  editCoverUrl.value = URL.createObjectURL(file)
+  revokeCoverObjectUrl()
+  coverObjectUrl = URL.createObjectURL(file)
+  editCoverUrl.value = coverObjectUrl
 }
 
 
 
 
 async function loadMore() {
-  const res = await api.get("api/blog/my_list/", {
-    params: { items_count: itemsCount.value },
-  })
-  if (res.data.result === "success") {
-    blogs.value.push(...res.data.blogs)
-    itemsCount.value += res.data.blogs.length
+  if (loading.value || !hasMore.value) return
+  loading.value = true
+  try {
+    const res = await api.get("api/blog/my_list/", {
+      params: { items_count: itemsCount.value },
+    })
+    if (res.data.result === "success") {
+      blogs.value.push(...res.data.blogs)
+      itemsCount.value += res.data.blogs.length
+      if (res.data.blogs.length < 20) hasMore.value = false
+    }
+  } finally {
+    loading.value = false
   }
 }
 
 // 🚀 进入编辑
 async function startEdit(blog) {
+  revokeCoverObjectUrl()
   editingId.value = blog.id
   editTitle.value = blog.title
   editContent.value = blog.content
   editTags.value = blog.tags.join(",")
+  editCover.value = null
   editCoverUrl.value = blog.cover_photo
 
   // 等 DOM 渲染出来
@@ -69,64 +90,97 @@ async function startEdit(blog) {
     },
 
     upload: {
-      url: "/api/upload/image/",
+      url: `${BASE_URL}/api/upload/image/`,
       fieldName: "file",
       headers: {
-        Authorization: "Bearer " + localStorage.getItem("token"),
+        Authorization: "Bearer " + useUserStore().accessToken,
       },
     },
   })
 }
 async function remove(id) {
-  const res = await api.post("api/blog/remove/", {
-    blog_id: id,
-  })
+  try {
+    const res = await api.post("api/blog/remove/", {
+      blog_id: id,
+    })
 
-  if (res.data.result === "success") {
-    blogs.value = blogs.value.filter(b => b.id !== id)
-  } else {
-    alert(res.data.result)
+    if (res.data.result === "success") {
+      blogs.value = blogs.value.filter(b => b.id !== id)
+    } else {
+      alert(res.data.result)
+    }
+  } catch (err) {
+    alert("删除失败，请稍后重试")
   }
+}
+
+function cancelEdit() {
+  editingId.value = null
+  editCover.value = null
+  editCoverUrl.value = ""
+  revokeCoverObjectUrl()
+  vditor?.destroy()
+  vditor = null
 }
 
 // 🚀 提交
 async function submitEdit(id) {
+  if (submitting.value) return
   submitting.value = true
 
-  const markdown = vditor?.getValue() || ""
+  try {
+    const markdown = vditor?.getValue() || ""
 
-  const formData = new FormData()
-  formData.append("blog_id", id)
-  formData.append("title", editTitle.value)
-  formData.append("content", markdown)
+    const formData = new FormData()
+    formData.append("blog_id", id)
+    formData.append("title", editTitle.value)
+    formData.append("content", markdown)
 
-  editTags.value.split(",").forEach((t) => {
-    if (t.trim()) formData.append("tags", t.trim())
-  })
+    editTags.value.split(",").forEach((t) => {
+      if (t.trim()) formData.append("tags", t.trim())
+    })
 
-  if (editCover.value) formData.append("cover_photo", editCover.value)
+    if (editCover.value) formData.append("cover_photo", editCover.value)
 
-  const res = await api.post("api/blog/update/", formData)
+    const res = await api.post("api/blog/update/", formData)
 
-  if (res.data.result === "success") {
-    const index = blogs.value.findIndex((b) => b.id === id)
+    if (res.data.result === "success") {
+      const index = blogs.value.findIndex((b) => b.id === id)
 
-    blogs.value[index] = {
-      ...blogs.value[index],
-      title: editTitle.value,
-      content: markdown,
-      tags: editTags.value.split(",").map(t => t.trim()).filter(Boolean),
-      cover_photo: res.data.cover_photo,  // 用后端真实url
+      if (index >= 0) {
+        blogs.value[index] = {
+          ...blogs.value[index],
+          title: editTitle.value,
+          content: markdown,
+          tags: editTags.value.split(",").map(t => t.trim()).filter(Boolean),
+          cover_photo: res.data.cover_photo,
+        }
+      }
+      editingId.value = null
+      revokeCoverObjectUrl()
+      vditor?.destroy()
+      vditor = null
+    } else {
+      alert(res.data.result)
     }
-    editingId.value = null
-    vditor?.destroy()
+  } finally {
+    submitting.value = false
   }
-
-  submitting.value = false
 }
 
-onMounted(loadMore)
-onBeforeUnmount(() => vditor?.destroy())
+onMounted(async () => {
+  await loadMore()
+  observer = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) loadMore()
+  })
+  if (sentinelRef.value) observer.observe(sentinelRef.value)
+})
+onBeforeUnmount(() => {
+  observer?.disconnect()
+  revokeCoverObjectUrl()
+  vditor?.destroy()
+  vditor = null
+})
 </script>
 
 <template>
@@ -137,7 +191,8 @@ onBeforeUnmount(() => vditor?.destroy())
 
         <div v-if="editingId === blog.id" class="p-6 space-y-4">
           <label class="relative block h-48 group cursor-pointer">
-            <img :src="editCoverUrl || '/placeholder.jpg'" class="w-full h-full object-cover rounded-xl border-2 border-dashed border-primary/20" />
+            <img v-if="editCoverUrl" :src="resolveMediaUrl(editCoverUrl)" class="w-full h-full object-cover rounded-xl border-2 border-dashed border-primary/20" />
+            <div v-else class="w-full h-full rounded-xl border-2 border-dashed border-primary/20 bg-base-200"></div>
             <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition rounded-xl">
               <span class="text-white">点击更换预览</span>
             </div>
@@ -151,13 +206,13 @@ onBeforeUnmount(() => vditor?.destroy())
             class="input input-bordered w-full handwritten-content"
           />
           <div class="flex justify-end gap-2">
-            <button class="btn btn-ghost btn-sm" @click="editingId = null">取消</button>
+            <button class="btn btn-ghost btn-sm" @click="cancelEdit">取消</button>
             <button class="btn btn-primary btn-sm" @click="submitEdit(blog.id)" :disabled="submitting">保存</button>
           </div>
         </div>
 
         <div v-else class="flex flex-col h-full">
-          <img v-if="blog.cover_photo" :src="blog.cover_photo" class="h-48 w-full object-cover" />
+          <img v-if="blog.cover_photo" :src="resolveMediaUrl(blog.cover_photo)" class="h-48 w-full object-cover" />
           <div class="p-6 flex-1 flex flex-col">
             <h2 class="text-xl font-bold mb-2 handwritten-content">{{ blog.title }}</h2>
             <p class="line-clamp-3 text-sm opacity-80 mb-4 flex-1 handwritten-content">{{ blog.content }}</p>
@@ -178,6 +233,8 @@ onBeforeUnmount(() => vditor?.destroy())
         </div>
       </div>
     </div>
-    <div ref="sentinel-ref" class="h-10"></div>
+    <div ref="sentinel-ref" class="h-20 flex items-center justify-center">
+      <span v-if="loading" class="loading loading-dots loading-lg text-primary"></span>
+    </div>
   </div>
 </template>

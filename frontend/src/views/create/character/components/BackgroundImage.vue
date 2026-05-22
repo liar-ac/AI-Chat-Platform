@@ -2,6 +2,7 @@
 import {nextTick, onBeforeUnmount, ref, useTemplateRef, watch} from "vue";
 import CameraIcon from "@/views/user/profile/components/icon/CameraIcon.vue";
 import Croppie from "croppie";
+import {resolveMediaUrl} from "@/js/http/api.js";
 
 const props = defineProps({
   backgroundImage: String,
@@ -89,7 +90,7 @@ defineExpose({
    <label class="label text-base">聊天背景</label>
    <div class="avatar relative">
      <div v-if="myBackgroundImage" class="w-15 h-25 rounded-box">
-       <img :src="myBackgroundImage" alt="">
+       <img :src="resolveMediaUrl(myBackgroundImage)" alt="">
      </div>
      <div v-else class="w-15 h-25 rounded-box bg-base-200"></div>
      <div @click="fileInputRef.click()" class="w-15 h-25 rounded-box absolute left-0 top-0 bg-black/20
@@ -103,11 +104,11 @@ defineExpose({
     <div class="modal-box transition-none max-w-2xl">
       <button @click="modalRef.close()" class="btn btn-sm btn-circle btn-ghost
         absolute right-2 top-2">✕</button>
-    </div>
-    <div ref="croppie-ref" class="flex flex-col my-4"></div>
-    <div class="modal-action">
-      <button @click="modalRef.close()" class="btn">取消</button>
-      <button @click="crop" class="btn btn-neutral">确定</button>
+      <div ref="croppie-ref" class="flex flex-col my-4"></div>
+      <div class="modal-action">
+        <button @click="modalRef.close()" class="btn">取消</button>
+        <button @click="crop" class="btn btn-neutral">确定</button>
+      </div>
     </div>
   </dialog>
 </template>

@@ -35,7 +35,7 @@ class GetSingleCharacterView(APIView):
                 },
                 'voices':voices
             })
-        except:
+        except Exception:
             return Response({
                 'result': '系统异常,获取角色失败,请稍后重试',
             })

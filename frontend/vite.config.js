@@ -15,6 +15,16 @@ export default defineConfig({
   build: {
     outDir: path.resolve(__dirname, '../backend/static/frontend'), // 打包到 Django static
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return
+          if (id.includes('vditor')) return 'editor'
+          if (id.includes('vue') || id.includes('pinia')) return 'vue-vendor'
+          return 'vendor'
+        },
+      },
+    },
   },
   resolve: {
     alias: {

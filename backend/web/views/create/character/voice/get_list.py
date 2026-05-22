@@ -20,7 +20,7 @@ class GetVoiceListView(APIView):
                 'result': 'success',
                 'voices': voices,
             })
-        except:
+        except Exception:
             return Response({
                 'result': '系统异常请稍后重试',
             })

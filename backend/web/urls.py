@@ -21,6 +21,7 @@ from web.views.friend.message.get_history import GetHistoryView
 from web.views.friend.remove import RemoveFriendsView
 from web.views.homepage.index import HomePageIndexView
 from web.views.index import index
+from web.views.upload_image import UploadImageView
 from web.views.user.account.get_user_info import GetUserInfoView
 from web.views.user.account.login import LoginView
 from web.views.user.account.logout import LogoutView
@@ -64,6 +65,7 @@ urlpatterns = [
     path('api/blog/remove/',RemoveBlogView.as_view()),
     path('api/blog/list/',GetAllBlogsView.as_view()),
     path("api/blog/detail/<int:blog_id>/", GetBlogDetailView.as_view()),
+    path('api/upload/image/', UploadImageView.as_view()),
     path('', index),
     re_path(r'^(?!media/|static/|assets/).*$', index)
 ]

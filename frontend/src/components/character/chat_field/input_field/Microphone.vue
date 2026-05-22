@@ -64,7 +64,6 @@ const sendToBackend = async (arrayBuffer) => {
       emit('send',null,data.text)
     }
   }catch (err){
-    console.log(err)
   }
 };
 

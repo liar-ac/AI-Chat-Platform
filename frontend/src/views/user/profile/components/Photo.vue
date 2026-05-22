@@ -2,8 +2,9 @@
 import Croppie from 'croppie'
 import 'croppie/croppie.css'
 
-import {nextTick, onBeforeMount, onBeforeUnmount, ref, useTemplateRef, watch} from "vue";
+import {nextTick, onBeforeUnmount, ref, useTemplateRef, watch} from "vue";
 import CameraIcon from "@/views/user/profile/components/icon/CameraIcon.vue";
+import {resolveMediaUrl} from "@/js/http/api.js";
 
 const props = defineProps({
   photo: String,
@@ -111,7 +112,7 @@ defineExpose({
   <div class="flex justify-center">
     <div class="avatar relative">
       <div class="w-28 rounded-full">
-        <img :src="myPhoto" alt="">
+        <img :src="resolveMediaUrl(myPhoto)" alt="">
       </div>
       <div @click="fileInputRef.click()" class="absolute left-0 top-0 w-28 h-28 flex justify-center
            items-center bg-black/20 rounded-full cursor-pointer">

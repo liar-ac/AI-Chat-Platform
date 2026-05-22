@@ -3,7 +3,7 @@
   import UserSpaceIcon from "@/components/navbar/icons/UserSpaceIcon.vue";
   import UserProfileIcon from "@/components/navbar/icons/UserProfileIcon.vue";
   import UserLogoutIcon from "@/components/navbar/icons/UserLogoutIcon.vue";
-  import api from '@/js/http/api';
+  import api, { resolveMediaUrl } from '@/js/http/api';
   import {useRouter} from "vue-router";
 
   const user = useUserStore()
@@ -31,7 +31,7 @@
   <div class="dropdown dropdown-end">
     <div tabindex="0" role="button" class="avatar btn btn-circle w-8 h-8 mr-6">
       <div class="w-8 rounded-full">
-        <img :src="user.photo" alt="">
+        <img :src="resolveMediaUrl(user.photo)" alt="">
       </div>
     </div>
     <ul tabindex="-1" class="dropdown-content menu bg-base-100 rounded-box z-1 w-48 p-2 shadow-lg">
@@ -39,7 +39,7 @@
        <RouterLink @click="closeMenu" :to="{name: 'user-space-index',params: {user_id: user.id}}">
           <div class="avatar">
             <div class="w-10 rounded-full">
-              <img :src="user.photo" alt="">
+              <img :src="resolveMediaUrl(user.photo)" alt="">
             </div>
           </div>
           <span class="text-base font-bold line-clamp-1 break-all">{{ user.username }}</span>

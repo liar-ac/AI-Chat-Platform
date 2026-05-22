@@ -36,7 +36,7 @@ class GetListFriendView(APIView):
                 'result': 'success',
                 'friends': friends
             })
-        except:
+        except Exception:
             return Response({
                 'result': '系统异常，请稍后重试',
             })

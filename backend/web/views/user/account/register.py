@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.models import User
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -36,11 +37,11 @@ class RegisterView(APIView):
                 value=str(refresh),
                 httponly=True,
                 samesite='Lax',
-                secure=True,
+                secure=not settings.DEBUG,
                 max_age=86400 * 7,
             )
             return response
-        except:
+        except Exception:
             return Response({
                 'result':'系统异常，请稍后重试'
             })

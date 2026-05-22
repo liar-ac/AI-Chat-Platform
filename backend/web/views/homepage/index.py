@@ -1,7 +1,4 @@
-from re import search
-
 from django.db.models import Q
-from django.db.models.sql import Query
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -41,7 +38,7 @@ class HomePageIndexView(APIView):
                 'characters': characters,
                 'result':'success',
             })
-        except:
+        except Exception:
             return Response({
                 'result':'home系统异常，请稍后重试',
             })

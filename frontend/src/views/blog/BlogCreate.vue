@@ -1,7 +1,8 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from "vue"
-import api from "@/js/http/api.js"
+import api, { BASE_URL } from "@/js/http/api.js"
 import { useRouter } from "vue-router"
+import { useUserStore } from "@/stores/user.js"
 import Vditor from "vditor"
 import "vditor/dist/index.css"
 
@@ -12,6 +13,7 @@ const content = ref("")
 const tags = ref("")
 const cover = ref(null)
 const submitting = ref(false)
+const errorMessage = ref("")
 
 let vditor = null
 
@@ -44,10 +46,10 @@ onMounted(() => {
 
     // 🚀 图片上传（对接 Django）
     upload: {
-      url: "/api/upload/image/", // 你的后端接口
+      url: `${BASE_URL}/api/upload/image/`,
       fieldName: "file",
       headers: {
-        Authorization: "Bearer " + localStorage.getItem("token"),
+        Authorization: "Bearer " + useUserStore().accessToken,
       },
     },
   })
@@ -62,10 +64,18 @@ async function submit() {
   const markdown = vditor?.getValue() || ""
 
   if (!title.value || !markdown) {
-    return alert("请填写必要内容")
+    errorMessage.value = "请填写标题和正文"
+    return
   }
 
+  if (!cover.value) {
+    errorMessage.value = "请上传封面照片"
+    return
+  }
+
+  if (submitting.value) return
   submitting.value = true
+  errorMessage.value = ""
 
   const formData = new FormData()
   formData.append("title", title.value)
@@ -81,7 +91,11 @@ async function submit() {
     const res = await api.post("/api/blog/create/", formData)
     if (res.data.result === "success") {
       router.push({ name: "blog-index" })
+    } else {
+      errorMessage.value = res.data.result
     }
+  } catch (err) {
+    errorMessage.value = "发布失败，请稍后重试"
   } finally {
     submitting.value = false
   }
@@ -126,15 +140,19 @@ async function submit() {
           </label>
           <input
             type="file"
+            accept="image/*"
             @change="e => cover = e.target.files[0]"
             class="file-input file-input-bordered file-input-primary w-full text-sm"
           />
         </div>
 
+        <p v-if="errorMessage" class="text-sm text-red-500">{{ errorMessage }}</p>
+
         <!-- 提交 -->
         <button
           class="btn btn-primary w-full text-base shadow-md shadow-primary/20"
           @click="submit"
+          :disabled="submitting"
         >
           <span v-if="submitting" class="loading loading-spinner"></span>
           发布博客

@@ -38,7 +38,7 @@ class GetOrCreateFriendView(APIView):
                     }
                 }
             })
-        except:
+        except Exception:
             return Response({
                 'result': '系统异常，请稍后重试',
             })

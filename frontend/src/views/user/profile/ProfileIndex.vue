@@ -30,7 +30,7 @@ async function handleUpdate() {
     const formData = new FormData()
     formData.append('username', username)
     formData.append('profile', profile)
-    if (photo !== user.photo.value) {
+    if (photo !== user.photo) {
       formData.append('photo', base64ToFile(photo, 'photo.png'))
     }
     try {

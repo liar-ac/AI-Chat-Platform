@@ -1,4 +1,6 @@
 <script setup>
+import { resolveMediaUrl } from "@/js/http/api.js";
+
 defineProps(['userProfile'])
 </script>
 
@@ -6,7 +8,7 @@ defineProps(['userProfile'])
 <div v-if="userProfile" class="flex justify-center mt-12 gap-8">
     <div class="avatar">
       <div class="w-44 rounded-full">
-        <img :src="userProfile.photo" alt="">
+        <img :src="resolveMediaUrl(userProfile.photo)" alt="">
       </div>
     </div>
     <div class="flex flex-col justify-center w-64 h-44">

@@ -11,12 +11,18 @@ const router = useRouter()
 
 onMounted(async () => {
   try {
-    const res = await api.get('/api/user/account/get_user_info/')
-    if (res.data.result === 'success') {
-      user.setUserInfo(res.data)
+    const refreshRes = await api.post('/api/user/account/refresh_token/', {})
+    if (refreshRes.data?.access) {
+      user.setAccessToken(refreshRes.data.access)
+      const res = await api.get('/api/user/account/get_user_info/')
+      if (res.data.result === 'success') {
+        user.setUserInfo(res.data)
+      }
+    } else {
+      user.logout()
     }
   } catch (err) {
-    console.error("Auth failed", err)
+    user.logout()
   } finally {
     user.setHasPulledUserInfo(true)
     if (route.meta.needLogin && !user.isLogin()) {
@@ -27,33 +33,11 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="relative min-h-screen">
-    <div class="fixed inset-0 z-[-1] pointer-events-none">
-      <div class="absolute inset-0 bg-base-200/50"></div>
-      <img
-        src="@/assets/static/background.jpg"
-        class="w-full h-full object-cover opacity-60"
-        style="image-rendering: high-quality;"
-      />
-    </div>
-
-    <NavBar>
-      <div class="min-h-[calc(100vh-64px)] overflow-x-hidden">
-        <RouterView v-slot="{ Component }">
-          <transition name="fade" mode="out-in">
-            <component :is="Component" />
-          </transition>
-        </RouterView>
-      </div>
-    </NavBar>
-  </div>
+  <div class="mesh-bg"></div>
+  <NavBar>
+    <RouterView />
+  </NavBar>
 </template>
 
-<style>
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-.fade-enter-from, .fade-leave-to {
-  opacity: 0;
-}
+<style scoped>
 </style>

@@ -1,15 +1,13 @@
-<script setup >
+<script setup>
 import {computed, nextTick, ref, useTemplateRef} from "vue";
 import CharacterPhotoField from "@/components/character/chat_field/character_photo_field/CharacterPhotoField.vue";
 import InputField from "@/components/character/chat_field/input_field/InputField.vue";
 import ChatHistory from "@/components/character/chat_field/chat_history/ChatHistory.vue";
+import { resolveMediaUrl } from "@/js/http/api.js";
 
-//接受来自父组件Character的参数
 const props = defineProps(['friend'])
 const modalRef = useTemplateRef('modal-ref')
-// 引用InputFieldz子组件
 const inputRef=useTemplateRef('input-ref')
-
 const chatHistoryRef = useTemplateRef('chat-history-ref')
 const history = ref([])
 
@@ -18,83 +16,138 @@ async function showModal(){
   await nextTick()
   inputRef.value.focus()
 }
-// 将模态框背景图片设置成聊天背景：
+
 const modalStyle = computed(() => {
   if (props.friend) {
     return {
-      backgroundImage: `url(${props.friend.character.background_image})`,
+      backgroundImage: `url(${resolveMediaUrl(props.friend.character.background_image)})`,
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',
-
-      // 兼容性最好的增强清晰度方案
-      imageRendering: 'auto',
-      // 针对 Webkit 内核（Safari/Chrome）的特殊优化
-      webkitImageRendering: 'optimize-contrast',
-
-      // 硬件加速，防止缩放模糊
-      transform: 'translateZ(0)',
     }
   } else {
     return {}
   }
 })
 
-// 在最后添加一个消息
 function handlePushBackMessage(msg){
-  // 将新消息添加到历史列表
   history.value.push(msg)
-  // 滚动聊天窗口到底部
   chatHistoryRef.value.scrollToBottom()
 }
-// 在最后一条消息上补充内容
+
 function handleAddToLastMessage(delta){
   history.value.at(-1).content+=delta
   chatHistoryRef.value.scrollToBottom()
 }
-//往上加消息,通过事件传递给子组件
+
 function handlePushFrontMessage(msg){
   history.value.unshift(msg)
 }
+
 function handleClose(){
   inputRef.value.close()
 }
+
 defineExpose({
   showModal,
 })
 </script>
 
 <template>
-<dialog ref="modal-ref" class="modal" @close="handleClose">
-  <div class="modal-box w-90 h-150 p-0 overflow-hidden" :style="modalStyle">
-    <div class="flex flex-col h-full bg-black/10 relative">
-      <button @click="modalRef.close()" class="btn btn-sm btn-circle btn-ghost bg-black/20 text-white absolute right-1 top-1 z-50">
-        ✕
+<dialog ref="modal-ref" class="chat-modal" @close="handleClose">
+  <div class="chat-container" :style="modalStyle">
+    <!-- Frosted overlay -->
+    <div class="chat-overlay">
+      <!-- Close button -->
+      <button @click="modalRef.close()" class="chat-close-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
 
+      <!-- Character header -->
+      <CharacterPhotoField v-if="friend" :character="friend.character"/>
+
+      <!-- Chat history -->
       <ChatHistory
-          ref="chat-history-ref"
-          v-if="friend"
-          :friendId="friend.id"
-          :character="friend.character"
-          :history="history"
-          @pushFrontMessage="handlePushFrontMessage"
+        ref="chat-history-ref"
+        v-if="friend"
+        :friendId="friend.id"
+        :character="friend.character"
+        :history="history"
+        @pushFrontMessage="handlePushFrontMessage"
       />
 
-      <!-- 父组件 定义两个事件pushBackMessage，addToLastMessage 进行父->子   -->
+      <!-- Input -->
       <InputField
-          v-if="friend"
-          :friendId="friend.id"
-          ref="input-ref"
-          @pushBackMessage="handlePushBackMessage"
-          @addToLastMessage="handleAddToLastMessage"
+        v-if="friend"
+        :friendId="friend.id"
+        ref="input-ref"
+        @pushBackMessage="handlePushBackMessage"
+        @addToLastMessage="handleAddToLastMessage"
       />
-      <CharacterPhotoField v-if="friend" :character="friend.character"/>
     </div>
   </div>
 </dialog>
 </template>
 
 <style scoped>
+.chat-modal {
+  background: rgba(26, 22, 37, 0.6);
+  backdrop-filter: blur(4px);
+  padding: 0;
+  border: none;
+  max-width: 100vw;
+  max-height: 100vh;
+}
 
+.chat-modal::backdrop {
+  background: rgba(26, 22, 37, 0.5);
+  backdrop-filter: blur(8px);
+}
+
+.chat-container {
+  width: 24rem;
+  height: 38rem;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  box-shadow:
+    0 8px 32px rgba(26, 22, 37, 0.2),
+    0 24px 64px rgba(26, 22, 37, 0.15);
+}
+
+.chat-overlay {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(26, 22, 37, 0.25) 0%,
+    rgba(26, 22, 37, 0.15) 30%,
+    rgba(26, 22, 37, 0.2) 100%
+  );
+  backdrop-filter: blur(2px);
+}
+
+.chat-close-btn {
+  position: absolute;
+  top: 0.625rem;
+  right: 0.625rem;
+  z-index: 50;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(8px);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.chat-close-btn:hover {
+  background: rgba(0, 0, 0, 0.4);
+}
 </style>

@@ -3,6 +3,7 @@ import Croppie from 'croppie'
 import 'croppie/croppie.css'
 import {nextTick, onBeforeUnmount, ref, useTemplateRef, watch} from "vue";
 import CameraIcon from "@/views/user/profile/components/icon/CameraIcon.vue";
+import {resolveMediaUrl} from "@/js/http/api.js";
 
 
 
@@ -61,7 +62,7 @@ defineExpose({
   <div class="flex justify-center">
     <div class="avatar relative">
       <div v-if="myPhoto" class="w-28 rounded-full">
-        <img  :src="myPhoto" alt="">
+        <img :src="resolveMediaUrl(myPhoto)" alt="">
       </div>
       <div v-else class="w-28 rounded-full bg-base-200"></div>
       <div @click="fileInputRef.click()" class="w-28 h-28 rounded-full bg-black/20 absolute left-0 top-0
@@ -74,7 +75,7 @@ defineExpose({
 <input ref="file-input-ref" type="file" class="hidden" accept="image/*" @change="onFileChange">
   <dialog ref="modal-ref" class="modal">
     <div class="modal-box transition-none">
-      <button @click="" class="btn btn-sm btn-circle btn-ghost absolute
+      <button @click="modalRef.close()" class="btn btn-sm btn-circle btn-ghost absolute
         right-2 top-2">
         ✕
       </button>

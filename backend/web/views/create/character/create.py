@@ -59,8 +59,7 @@ class CreateCharacterView(APIView): # 继承自APIView，创建API视图
             return Response({
                 'result':'success'
             })
-        except Exception as e:
-            print(e)
+        except Exception:
             return Response({
                 'result': '系统异常,创建失败,请稍后重试',
             })

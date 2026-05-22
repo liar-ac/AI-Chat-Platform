@@ -1,8 +1,8 @@
-<script setup >
+<script setup>
 
 import {useUserStore} from "@/stores/user.js";
 import {ref, useTemplateRef} from "vue";
-import api from "@/js/http/api.js";
+import api, { resolveMediaUrl } from "@/js/http/api.js";
 import UpdateIcon from "@/components/navbar/icons/UpdateIcon.vue";
 import RemoveIcon from "@/components/navbar/icons/RemoveIcon.vue";
 import {useRouter} from "vue-router";
@@ -22,13 +22,9 @@ async function handleRemoveFriend(){
       friend_id:props.friendId,
     })
     if (res.data.result === 'success'){
-      // 子组件向父组件传递消息
-      // 'remove'：事件名称，父组件通过 @remove 监听
-      // props.friendId：要传递给父组件的数据（载荷）
       emit('remove',props.friendId)
     }
   }catch (err){
-    console.log(err)
   }
 }
 async function handleRemoveCharacter(){
@@ -40,7 +36,6 @@ async function handleRemoveCharacter(){
       emit('remove',props.character.id)
     }
   }catch (err){
-    console.log(err)
   }
 }
 const chatFieldRef=useTemplateRef('chat-field-ref')
@@ -61,61 +56,284 @@ async function openChatField(){
         chatFieldRef.value.showModal()
       }
     }catch (err){
-      console.log(err)
     }
   }
 }
 </script>
 
 <template>
- <div>
-    <div class="avatar cursor-pointer" @mouseover="isHover=true" @mouseout="isHover=false" @click="openChatField">
-      <div class="w-60 h-100 rounded-2xl relative">
-        <img :src="character.background_image" class="transition-transform duration-300" :class="{'scale-120': isHover}" alt="">
-        <div class="absolute left-0 top-50 w-60 h-50 bg-linear-to-t from-black/40 to-transparent"></div>
+  <div class="character-card-wrapper">
+    <div
+      class="character-card"
+      @mouseover="isHover=true"
+      @mouseout="isHover=false"
+      @click="openChatField"
+    >
+      <!-- Background Image -->
+      <div class="card-bg">
+        <img
+          :src="resolveMediaUrl(character.background_image)"
+          :class="{'zoom-in': isHover}"
+          alt=""
+        />
+      </div>
 
-        <div v-if="canEdit && character.author.user_id === user.id" class="absolute right-0 top-50">
-          <RouterLink :to="{name: 'update-character', params: {character_id: character.id}}" class="btn btn-circle btn-ghost bg-transparent">
-            <UpdateIcon />
-          </RouterLink>
-          <button @click.stop="handleRemoveCharacter" class="btn btn-circle btn-ghost bg-transparent">
-            <RemoveIcon />
-          </button>
+      <!-- Gradient Overlay -->
+      <div class="card-overlay"></div>
+
+      <!-- Action Buttons -->
+      <div v-if="canEdit && character.author.user_id === user.id" class="card-actions">
+        <RouterLink :to="{name: 'update-character', params: {character_id: character.id}}" class="action-btn" @click.stop>
+          <UpdateIcon />
+        </RouterLink>
+        <button @click.stop="handleRemoveCharacter" class="action-btn action-btn-danger">
+          <RemoveIcon />
+        </button>
+      </div>
+      <div v-if="canRemoveFriend" class="card-actions">
+        <button @click.stop="handleRemoveFriend" class="action-btn action-btn-danger">
+          <RemoveIcon/>
+        </button>
+      </div>
+
+      <!-- Character Info -->
+      <div class="card-info">
+        <div class="card-avatar">
+          <img :src="resolveMediaUrl(character.photo)" alt="" />
         </div>
-        <div v-if="canRemoveFriend" class="absolute right-0 top-50">
-          <button @click.stop="handleRemoveFriend" class="btn btn-circle btn-ghost bg-transparent">
-            <RemoveIcon/>
-          </button>
+        <div class="card-meta">
+          <h3 class="card-name">{{ character.name }}</h3>
+          <p class="card-profile">{{ character.profile }}</p>
         </div>
-        <div class="absolute left-4 top-54 avatar">
-          <div class="w-16 rounded-full ring-3 ring-white">
-            <img :src="character.photo" alt="">
-          </div>
-        </div>
-        <div class="absolute left-24 right-4 top-58 text-white font-bold line-clamp-1 break-all">
-          {{ character.name }}
-        </div>
-        <div class="absolute left-4 right-4 top-72 text-white line-clamp-4 break-all">
-          {{ character.profile }}
-        </div>
+      </div>
+
+      <!-- Hover Hint -->
+      <div class="card-hint" :class="{'visible': isHover}">
+        <span>开始对话</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
       </div>
     </div>
-    <RouterLink :to="{name: 'user-space-index', params: {user_id: character.author.user_id}}" class="flex items-center mt-4 gap-2 w-60">
-      <div class="avatar">
-        <div class="w-7 rounded-full">
-          <img :src="character.author.photo" alt="">
-        </div>
+
+    <!-- Author -->
+    <RouterLink :to="{name: 'user-space-index', params: {user_id: character.author.user_id}}" class="card-author">
+      <div class="author-avatar">
+        <img :src="resolveMediaUrl(character.author.photo)" alt="" />
       </div>
-      <div class="text-sm line-clamp-1 break-all">{{ character.author.username }}</div>
+      <span class="author-name">{{ character.author.username }}</span>
     </RouterLink>
-    <!--   :friend="friend" 是 Vue 中动态属性绑定的语法，用于将父组件的数据传递给子组件-->
-    <!--  : ：v-bind: 的缩写，表示动态绑定   friend ：子组件接收的 prop 名称  "friend" ：父组件中的数据变量 -->
+
     <ChatField ref="chat-field-ref" :friend="friend"/>
   </div>
-
-
 </template>
 
 <style scoped>
+.character-card-wrapper {
+  display: flex;
+  flex-direction: column;
+  animation: fadeUp 0.5s var(--ease-out-expo) both;
+}
 
+.character-card {
+  position: relative;
+  width: 15rem;
+  height: 25rem;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow:
+    0 2px 8px rgba(26, 22, 37, 0.06),
+    0 8px 24px rgba(26, 22, 37, 0.08);
+  transition: all 0.5s var(--ease-out-expo);
+}
+
+.character-card:hover {
+  box-shadow:
+    0 4px 12px rgba(26, 22, 37, 0.08),
+    0 16px 48px rgba(26, 22, 37, 0.14);
+  transform: translateY(-6px);
+}
+
+/* Background */
+.card-bg {
+  position: absolute;
+  inset: 0;
+}
+
+.card-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s var(--ease-out-expo);
+}
+
+.card-bg img.zoom-in {
+  transform: scale(1.08);
+}
+
+/* Overlay */
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(26, 22, 37, 0.75) 0%,
+    rgba(26, 22, 37, 0.3) 40%,
+    rgba(26, 22, 37, 0.05) 70%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+/* Actions */
+.card-actions {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  z-index: 10;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s;
+  text-decoration: none;
+}
+
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.action-btn-danger:hover {
+  background: rgba(244, 63, 94, 0.6);
+}
+
+/* Character Info */
+.card-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.card-avatar {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2.5px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+.card-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.card-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: white;
+  line-height: 1.3;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.card-profile {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Hover Hint */
+.card-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: rgba(108, 92, 231, 0.85);
+  backdrop-filter: blur(8px);
+  color: white;
+  border-radius: var(--r-full);
+  font-size: 0.875rem;
+  font-weight: 600;
+  opacity: 0;
+  transition: all 0.35s var(--ease-out-expo);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.card-hint.visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Author */
+.card-author {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.25rem;
+  text-decoration: none;
+  transition: opacity 0.2s;
+  width: 15rem;
+}
+
+.card-author:hover {
+  opacity: 0.7;
+}
+
+.author-avatar {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.author-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.author-name {
+  font-size: 0.8rem;
+  color: var(--c-ink-soft);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 </style>

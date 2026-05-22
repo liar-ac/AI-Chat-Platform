@@ -1,7 +1,7 @@
 <script setup >
 import { useRoute } from 'vue-router';
 import UserInfoField from "@/views/user/space/components/UserInfoField.vue";
-import {nextTick, onBeforeUnmount, onMounted, ref, resolveDirective, useTemplateRef, watch} from "vue";
+import {nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch} from "vue";
 import api from "@/js/http/api.js";
 import Character from "@/components/character/Character.vue";
 const userProfile = ref(null)
@@ -77,11 +77,11 @@ onMounted(async () => {
     },
     {root: null, rootMargin: '2px', threshold: 0}
   )
-  observer.observe(sentinelRef.value)
+  if (sentinelRef.value) observer.observe(sentinelRef.value)
 })
 
 onBeforeUnmount(()=>{
-  observer?.disconnect
+  observer?.disconnect()
 })
 
 </script>

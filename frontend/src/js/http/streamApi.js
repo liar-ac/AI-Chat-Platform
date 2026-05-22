@@ -35,8 +35,12 @@ export default async function streamApi(url, options = {}) {
                 // 1. 处理 401 Token 过期
                 if (response.status === 401) {
                     try {
-                        // 触发 api.js 中的 Axios 拦截器进行静默刷新
-                        await api.post('/api/user/account/refresh_token/', {});
+                        const refreshRes = await api.post('/api/user/account/refresh_token/', {});
+                        if (refreshRes.data?.access) {
+                            userStore.setAccessToken(refreshRes.data.access)
+                        } else {
+                            throw new Error("TOKEN_REFRESH_FAILED")
+                        }
                         // 抛出特定错误触发下面的 onerror 重试逻辑
                         throw new Error("TOKEN_REFRESHED");
                     } catch (err) {

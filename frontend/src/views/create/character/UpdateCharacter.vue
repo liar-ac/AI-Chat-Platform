@@ -25,14 +25,12 @@ const handleVoiceRefresh = (newVoice) => {
 
 onMounted(async () => {
   try {
-    console.log(characterId)
     const res = await api.get('/api/create/character/get_single/', {
       params: {
         character_id: characterId,
       }
     })
     const data = res.data
-    console.log(data)
     if (data.result === 'success') {
       character.value = data.character
       voices.value=data.voices
@@ -97,7 +95,6 @@ async function handleUpdate() {
         errorMessage.value = data.result
       }
     } catch (err) {
-      console.error(err)
     }
   }
 }

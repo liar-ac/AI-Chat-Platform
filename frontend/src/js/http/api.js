@@ -12,7 +12,15 @@ import axios from "axios"
 import {useUserStore} from "@/stores/user.js";
 import CONFIG_API from "@/js/config/config.js";
 
-const BASE_URL = CONFIG_API.HTTP_URL
+export const BASE_URL = CONFIG_API.HTTP_URL
+
+export function resolveMediaUrl(url) {
+    if (!url) return ''
+    if (/^[a-z][a-z\d+\-.]*:/i.test(url)) return url
+    if (url.startsWith('//')) return `${window.location.protocol}${url}`
+    if (!url.startsWith('/')) return `${BASE_URL}/${url}`
+    return `${BASE_URL}${url}`
+}
 
 const api = axios.create({
     baseURL: BASE_URL,
@@ -73,6 +81,9 @@ api.interceptors.response.use(
                         {},
                         {withCredentials: true, timeout: 5000}
                     ).then(res => {
+                        if (!res.data?.access) {
+                            throw new Error('access token missing')
+                        }
                         user.setAccessToken(res.data.access)
                         onRefreshed(res.data.access)
                     }).catch(error => {

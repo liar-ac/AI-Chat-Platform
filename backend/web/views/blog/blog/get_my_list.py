@@ -17,7 +17,7 @@ class GetMyListView(APIView):
 
             blogs_raw = Blog.objects.filter(
                 author__user=request.user
-            ).order_by('-create_time')[items_count:items_count + 4]
+            ).prefetch_related('tags').order_by('-create_time')[items_count:items_count + 20]
 
             blogs = []
 
@@ -34,8 +34,7 @@ class GetMyListView(APIView):
                 'result': 'success',
                 'blogs': blogs
             })
-        except Exception as e:
-            print(e)
+        except Exception:
             return Response({
                 'result': '系统异常，请稍后重试',
             })

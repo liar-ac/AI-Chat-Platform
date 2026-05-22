@@ -10,8 +10,8 @@ class RefreshTokenView(APIView):
             refresh_token = request.COOKIES.get('refresh_token')
             if not refresh_token:
                 return Response({
-                    'result': 'refresh token不存在'
-                }, status=401)  # 必须加401
+                    'result': '未登录'
+                })
             refresh = RefreshToken(refresh_token)  # 如果refresh token过期了，会报异常
             if settings.SIMPLE_JWT['ROTATE_REFRESH_TOKENS']:
                 refresh.set_jti()
@@ -24,7 +24,7 @@ class RefreshTokenView(APIView):
                     value=str(refresh),
                     httponly=True,
                     samesite='Lax',
-                    secure=True,
+                    secure=not settings.DEBUG,
                     max_age=86400 * 7,
                 )
                 return response
@@ -32,7 +32,7 @@ class RefreshTokenView(APIView):
                 'result': 'success',
                 'access': str(refresh.access_token),
             })
-        except:
+        except Exception:
             return Response({
                 'result': "refresh token过期了"
-            }, status=401)  # 必须加401
+            })

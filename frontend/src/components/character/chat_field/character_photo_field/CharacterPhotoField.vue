@@ -1,22 +1,65 @@
 <script setup>
-//defineProps 用于在 Vue 组件中定义接收的属性（props），让父组件可以向子组件传递数据
-defineProps(['character'])
+import { resolveMediaUrl } from "@/js/http/api.js";
 
+defineProps(['character'])
 </script>
 
 <template>
-<div class="absolute left-2 right-22 top-6 h-10 w-fit rounded-full bg-black/50 flex items-center gap-2 px-2">
-  <div class="avatar">
-    <div class="w-8 rounded-full">
-      <img :src="character.photo" alt="">
+  <div class="character-header">
+    <div class="ch-avatar">
+      <img :src="resolveMediaUrl(character.photo)" alt="" />
+    </div>
+    <div class="ch-info">
+      <span class="ch-name">{{ character.name }}</span>
+      <span class="ch-status">在线</span>
     </div>
   </div>
-  <div class="text-white text-sm line-clamp-1 break-all">
-    {{character.name}}
-  </div>
-</div>
 </template>
 
 <style scoped>
+.character-header {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.75rem;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem 0.375rem 0.375rem;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(12px);
+  border-radius: var(--r-full);
+}
 
+.ch-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+}
+
+.ch-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ch-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.ch-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: white;
+  line-height: 1.2;
+}
+
+.ch-status {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.7);
+}
 </style>

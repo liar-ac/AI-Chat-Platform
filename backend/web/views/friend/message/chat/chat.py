@@ -222,5 +222,5 @@ class MessageChatView(APIView):
             total_tokens=total_tokens,
         )
         # 每五次对话更新一次长期记忆
-        if Message.objects.filter(friend=friend).count() % 1 == 0:
+        if Message.objects.filter(friend=friend).count() % 5 == 0:
             update_memory(friend)
