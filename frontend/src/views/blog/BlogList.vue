@@ -15,6 +15,7 @@ const errorMessage = ref('')
 const sentinelRef = useTemplateRef('sentinel-ref')
 let observer = null
 let failedOnce = false
+let requestId = 0  // 用于请求去重，只接受最新一次请求的结果
 
 async function loadMore(isInitial = false) {
   if (loadingMore.value || !hasMore.value) return
@@ -24,6 +25,7 @@ async function loadMore(isInitial = false) {
     loadingMore.value = true
   }
   errorMessage.value = ''
+  const myId = ++requestId
   try {
     const res = await api.get('api/blog/list/', {
       params: {
@@ -31,6 +33,8 @@ async function loadMore(isInitial = false) {
         search_query: route.query.q || '',
       }
     })
+    // 如果期间有新的请求发起，丢弃本次结果
+    if (myId !== requestId) return
     if (res.data.result === 'success') {
       const newBlogs = res.data.blogs || []
       blogs.value.push(...newBlogs)
@@ -43,13 +47,16 @@ async function loadMore(isInitial = false) {
       failedOnce = true
     }
   } catch (err) {
+    if (myId !== requestId) return
     console.error('博客加载失败:', err)
     errorMessage.value = '博客加载失败，请检查后端服务或稍后重试'
     hasMore.value = false
     failedOnce = true
   } finally {
-    initialLoading.value = false
-    loadingMore.value = false
+    if (myId === requestId) {
+      initialLoading.value = false
+      loadingMore.value = false
+    }
   }
 }
 
@@ -80,6 +87,8 @@ watch(() => route.query.q, () => {
   itemsCount.value = 0
   hasMore.value = true
   failedOnce = false
+  ++requestId  // 使旧请求的回调失效
+  initialLoading.value = true
   loadMore(true)
 })
 

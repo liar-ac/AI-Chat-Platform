@@ -13,7 +13,10 @@ logger = logging.getLogger(__name__)
 class GetAllBlogsView(APIView):
     def get(self, request):
         try:
-            items_count = int(request.GET.get('items_count', 0))
+            raw_count = request.GET.get('items_count', '0')
+            if not raw_count.lstrip('-').isdigit():
+                return Response({'result': '参数错误'})
+            items_count = max(0, int(raw_count))
             search_query = request.GET.get('search_query', '').strip()
 
             qs = Blog.objects.all().select_related('author__user') \

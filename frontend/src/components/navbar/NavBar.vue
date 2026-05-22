@@ -14,12 +14,12 @@ import BlogCreateIcon from "@/views/blog/icon/BlogCreateIcon.vue";
 import BlogManageIcon from "@/views/blog/icon/BlogManageIcon.vue";
 const user=useUserStore()
 
-const searchQuery = ref('')
 const router = useRouter()
 const route = useRoute()
+const searchQuery = ref(route.query.q || '')
 watch(() => route.query.q, newQ => {
   searchQuery.value = newQ || ''
-})
+}, { immediate: true })
 
 // 根据当前路由判断是否在博客相关页面
 const isBlogPage = computed(() => {
@@ -107,7 +107,7 @@ const blogItems = [
         <!-- Logo: 只在展开时显示，用overflow-hidden防止截断 -->
         <div class="sidebar-logo">
           <span class="brand-icon-lg">✦</span>
-          <span class="sidebar-logo-text">AIFriends</span>
+          <span class="is-drawer-close:hidden sidebar-logo-text">AIFriends</span>
         </div>
 
         <ul class="menu w-full grow px-2 gap-0.5">
@@ -119,12 +119,12 @@ const blogItems = [
               :data-tip="item.tip"
             >
               <component :is="item.icon" />
-              <span class="sidebar-label">{{ item.label }}</span>
+              <span class="is-drawer-close:hidden sidebar-label">{{ item.label }}</span>
             </RouterLink>
           </li>
 
           <!-- Divider -->
-          <li class="my-2">
+          <li class="is-drawer-close:hidden my-2">
             <div class="sidebar-divider">
               <span>博客</span>
             </div>
@@ -138,13 +138,13 @@ const blogItems = [
               :data-tip="item.tip"
             >
               <component :is="item.icon" />
-              <span class="sidebar-label">{{ item.label }}</span>
+              <span class="is-drawer-close:hidden sidebar-label">{{ item.label }}</span>
             </RouterLink>
           </li>
         </ul>
 
         <!-- Footer -->
-        <div class="sidebar-footer">
+        <div class="is-drawer-close:hidden sidebar-footer">
           <p>AI陪伴 · 创意表达</p>
         </div>
       </aside>
@@ -310,22 +310,10 @@ const blogItems = [
   flex-shrink: 0;
 }
 
-/* 窄侧边栏时隐藏Logo文字，避免截断 */
+/* Logo文字溢出保护 */
 .sidebar-logo-text {
   overflow: hidden;
-}
-
-@media (min-width: 1024px) {
-  .drawer:not(:has(.drawer-toggle:checked)) .sidebar-logo-text {
-    display: none;
-  }
-  .drawer:not(:has(.drawer-toggle:checked)) .sidebar-divider span,
-  .drawer:not(:has(.drawer-toggle:checked)) .sidebar-footer p {
-    display: none;
-  }
-  .drawer:not(:has(.drawer-toggle:checked)) .sidebar-label {
-    display: none;
-  }
+  text-overflow: ellipsis;
 }
 
 .sidebar-link {
