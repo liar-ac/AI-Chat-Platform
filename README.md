@@ -4,10 +4,13 @@
 
 **基于Django 6.0 + Vue 3.0的AI角色聊天平台**
 
+> An AI character chat platform with real-time dialogue, voice interaction, and blog system. Built with Django 6.0 + Vue 3.0. — [English](README.en.md)
+
 [![Django](https://img.shields.io/badge/Django-6.0-092E20?style=flat-square&logo=django&logoColor=white)](https://www.djangoproject.com/)
 [![Vue.js](https://img.shields.io/badge/Vue.js-3.0-4FC08D?style=flat-square&logo=vue.js&logoColor=white)](https://vuejs.org/)
 [![Vite](https://img.shields.io/badge/Vite-7.0-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat-square&logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![CI](https://github.com/liar-ac/AI-Chat-Platform/actions/workflows/ci.yml/badge.svg)](https://github.com/liar-ac/AI-Chat-Platform/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
 一个支持AI角色创建、实时对话、语音交互和博客系统的全栈Web应用。
@@ -194,21 +197,32 @@ npm run build
 
 > 使用Django Serve模式时，前端打包后由Django直接提供静态资源服务，无需单独启动Vite。
 
-## 配置说明
+## 环境变量说明
 
-### 前端模式切换
+### 后端 `backend/.env`
 
-在 `frontend/src/js/config/config.js` 中切换运行模式：
+| 变量 | 必填 | 说明 |
+|------|------|------|
+| `DJANGO_SECRET_KEY` | 生产必填 | Django密钥，生产环境必须设置随机字符串，不要使用默认值 |
+| `DJANGO_DEBUG` | 生产必填 | `True`仅限本地开发，**生产必须设为`False`** |
+| `DJANGO_ALLOWED_HOSTS` | 生产必填 | 逗号分隔的允许域名，如`your-domain.com,www.your-domain.com` |
+| `MYSQL_DATABASE` | 是 | 数据库名 |
+| `MYSQL_USER` | 是 | 数据库用户名 |
+| `MYSQL_PASSWORD` | 是 | 数据库密码 |
+| `MYSQL_HOST` | 是 | 数据库地址 |
+| `MYSQL_PORT` | 是 | 数据库端口 |
+| `API_KEY` | 是 | AI模型API Key（DeepSeek/OpenAI兼容） |
+| `API_BASE` | 是 | AI模型API地址 |
+| `ALI_KEY` | 否 | 阿里云语音Key（ASR/TTS/音色克隆） |
+| `WSS_URL` | 否 | 阿里云语音WebSocket地址 |
+| `VOICE_URL` | 否 | 阿里云语音合成地址 |
 
-```javascript
-const platform = 'django'  // 'vue' | 'django' | 'cloud'
-```
+### 前端 `frontend/.env`
 
-| 模式 | 说明 | API地址 |
-|------|------|---------|
-| `vue` | Vite开发模式 | `http://127.0.0.1:8000` |
-| `django` | Django Serve模式 | `http://127.0.0.1:8000` |
-| `cloud` | 云部署模式 | `https://your-domain.com` |
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `VITE_API_BASE_URL` | `http://127.0.0.1:8000` | 后端API地址 |
+| `VITE_VAD_URL` | `http://127.0.0.1:8000/static/frontend/vad/` | VAD音频资源地址 |
 
 ## API接口
 
@@ -227,28 +241,67 @@ const platform = 'django'  // 'vue' | 'django' | 'cloud'
 
 ## 部署
 
-### 生产环境配置
+### 生产环境必须配置
 
-1. 设置 `DEBUG = False` in `settings.py`
-2. 配置 `ALLOWED_HOSTS`
-3. 使用Gunicorn或uWSGI作为WSGI服务器
-4. 配置Nginx反向代理
-5. 配置HTTPS证书
+```env
+# backend/.env — 生产环境示例
+DJANGO_SECRET_KEY=your-random-50-char-string
+DJANGO_DEBUG=False
+DJANGO_ALLOWED_HOSTS=your-domain.com,www.your-domain.com
+MYSQL_DATABASE=aifriends
+MYSQL_USER=your_user
+MYSQL_PASSWORD=your_strong_password
+MYSQL_HOST=your_db_host
+MYSQL_PORT=3306
+API_KEY=your_api_key
+API_BASE=https://api.deepseek.com
+MEDIA_URL=https://your-domain.com/media/
+CORS_ALLOWED_ORIGINS=https://your-domain.com
+```
 
 ```bash
+# 打包前端
+cd frontend && npm install && npm run build
+
+# 启动后端（生产推荐Gunicorn）
+cd backend
 pip install gunicorn
 gunicorn backend.wsgi:application --bind 0.0.0.0:8000 --workers 4
 ```
 
+建议在Nginx反向代理后启用HTTPS。
+
+## 常见问题
+
+**Q: 启动后端报`ModuleNotFoundError: No module named 'mysqlclient'`**
+A: Windows用户建议使用Conda环境，`conda install mysqlclient`或`pip install mysqlclient`。Linux需先安装`libmysqlclient-dev`。
+
+**Q: 前端页面空白，控制台报CORS错误**
+A: 确认`backend/.env`中`CORS_ALLOWED_ORIGINS`包含前端访问地址，或`DJANGO_ALLOWED_HOSTS`包含当前域名。
+
+**Q: 浏览器标签页标题或图标不对**
+A: 执行`npm run build`重新打包，Django模板中的资源文件名会自动同步。强刷`Ctrl+Shift+Delete`清除缓存。
+
+**Q: AI对话没有回复**
+A: 检查`backend/.env`中`API_KEY`和`API_BASE`是否正确配置。需要DeepSeek或OpenAI兼容API密钥。
+
+**Q: 博客广场空白**
+A: 确认后端已启动且数据库已执行`python manage.py migrate`。打开浏览器控制台查看具体错误。
+
+## 安全提醒
+
+> **生产环境必须遵守以下安全规则：**
+
+1. **永远不要提交`.env`文件到Git** — 使用`.env.example`作为模板
+2. **必须设置`DJANGO_SECRET_KEY`为随机字符串** — 不要使用代码中的默认值
+3. **必须设置`DJANGO_DEBUG=False`** — `True`仅限本地开发
+4. **历史泄露密钥必须轮换** — 如果曾将密钥提交到Git，即使已删除文件，历史中仍可访问。立即在对应平台轮换密钥
+5. **数据库密码必须使用强密码** — 不要使用简单密码
+6. **详见[SECURITY.md](SECURITY.md)**
+
 ## 贡献
 
-欢迎提交Issue和Pull Request！
-
-1. Fork本仓库
-2. 创建特性分支 (`git checkout -b feature/amazing-feature`)
-3. 提交更改 (`git commit -m 'Add amazing feature'`)
-4. 推送到分支 (`git push origin feature/amazing-feature`)
-5. 创建Pull Request
+欢迎提交Issue和Pull Request！详见[CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ## 开源协议
 
