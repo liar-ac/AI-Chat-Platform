@@ -35,7 +35,9 @@ onMounted(async ()=>{
     const data=res.data
     if (data.result==='success'){
       voices.value=data.voices
-      curVoiceId.value=data.voices[0].id
+      if (data.voices.length > 0) {
+        curVoiceId.value=data.voices[0].id
+      }
     }
   }catch (err){
     console.error(err)
