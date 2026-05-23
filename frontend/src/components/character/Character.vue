@@ -25,6 +25,7 @@ async function handleRemoveFriend(){
       emit('remove',props.friendId)
     }
   }catch (err){
+    console.error('删除好友失败:', err)
   }
 }
 async function handleRemoveCharacter(){
@@ -36,6 +37,7 @@ async function handleRemoveCharacter(){
       emit('remove',props.character.id)
     }
   }catch (err){
+    console.error('删除角色失败:', err)
   }
 }
 const chatFieldRef=useTemplateRef('chat-field-ref')
@@ -56,6 +58,7 @@ async function openChatField(){
         chatFieldRef.value.showModal()
       }
     }catch (err){
+      console.error('打开聊天失败:', err)
     }
   }
 }

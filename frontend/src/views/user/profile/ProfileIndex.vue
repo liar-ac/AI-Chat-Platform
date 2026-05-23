@@ -42,6 +42,7 @@ async function handleUpdate() {
         errorMessage.value = data.result
       }
     } catch (err) {
+      console.error('更新资料失败:', err)
     }
   }
 }

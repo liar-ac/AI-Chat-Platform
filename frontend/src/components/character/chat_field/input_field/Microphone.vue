@@ -64,6 +64,7 @@ const sendToBackend = async (arrayBuffer) => {
       emit('send',null,data.text)
     }
   }catch (err){
+    console.error('语音识别失败:', err)
   }
 };
 

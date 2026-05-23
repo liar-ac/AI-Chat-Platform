@@ -82,6 +82,7 @@ async function handleCreate(){
         errorMessage.value=data.result
       }
     }catch (err){
+      console.error('创建角色失败:', err)
     }
   }
 }

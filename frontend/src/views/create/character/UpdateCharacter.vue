@@ -37,6 +37,7 @@ onMounted(async () => {
       curVoiceId.value=data.character.voice_id
     }
   } catch (err) {
+    console.error('加载角色失败:', err)
   }
 })
 
@@ -95,6 +96,7 @@ async function handleUpdate() {
         errorMessage.value = data.result
       }
     } catch (err) {
+      console.error('更新角色失败:', err)
     }
   }
 }

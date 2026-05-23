@@ -22,7 +22,7 @@
         })
       }
     }catch (err){
-
+      console.error('退出登录失败:', err)
     }
   }
 </script>
