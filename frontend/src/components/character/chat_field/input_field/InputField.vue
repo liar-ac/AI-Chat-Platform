@@ -143,7 +143,9 @@ async function handleSend(event,audio_msg){
         }
       },
     })
-  }catch (err){}
+  }catch (err){
+    console.error('发送消息失败:', err)
+  }
 }
 
 function close(){

@@ -68,6 +68,6 @@ class GetAllBlogsView(APIView):
 
         except ValueError:
             return Response({'result': '参数错误'})
-        except Exception as e:
+        except Exception:
             logger.exception('获取博客列表失败')
             return Response({'result': '系统异常，请稍后重试'})

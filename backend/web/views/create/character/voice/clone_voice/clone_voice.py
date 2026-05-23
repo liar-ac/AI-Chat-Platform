@@ -1,5 +1,5 @@
+import logging
 import os
-import traceback
 import uuid
 
 from rest_framework.permissions import IsAuthenticated
@@ -8,12 +8,14 @@ from rest_framework.views import APIView
 
 from backend import settings
 from web.models.character import Voice
+
+logger = logging.getLogger(__name__)
 from web.views.create.character.voice.custom.create_voice import create_voice
 class CloneVoiceView(APIView):
     permission_classes = (IsAuthenticated,)
     def post(self, request):
         try:
-            audio=request.FILES['audio']
+            audio=request.FILES.get('audio')
             name=request.data.get('name',"voice")
 
             if not audio:
@@ -49,7 +51,7 @@ class CloneVoiceView(APIView):
                 }
             })
         except Exception:
-            traceback.print_exc()
+            logger.exception('克隆音色失败')
             return Response({
                 'result': '系统异常，请稍后重试',
             })
