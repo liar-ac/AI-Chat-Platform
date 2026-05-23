@@ -4,7 +4,6 @@ import json
 import os
 import threading
 import uuid
-from pprint import pprint
 
 import websockets
 from django.http import StreamingHttpResponse

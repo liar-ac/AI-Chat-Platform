@@ -1,5 +1,3 @@
-from pprint import pprint
-
 from django.utils.timezone import now
 from langchain_core.messages import SystemMessage, HumanMessage
 
